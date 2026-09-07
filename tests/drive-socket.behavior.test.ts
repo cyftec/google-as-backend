@@ -3,14 +3,12 @@ import {
   FilenameExtensionMismatchError,
   InvalidMimeError,
   MessageExistsError,
-  NotAuthenticatedError,
 } from "../src/errors/index.ts";
 import {
   DriveSocket,
   type DriveMessage,
   type DriveSocketConfig,
 } from "../src/index.ts";
-import { getOAuthSingleton } from "../src/google/oauth.ts";
 import { DriveApiFixture } from "./mocks/drive-api.ts";
 import {
   DEFAULT_ROOT_PATH,
@@ -18,24 +16,29 @@ import {
   ROOT_FOLDER_ID,
 } from "./mocks/drive-socket-harness.ts";
 import {
-  createMockOAuth,
+  AUTH_SESSION_KEY,
+  createMockAuth,
   DRIVE_APPDATA_SCOPE,
   DRIVE_FILE_SCOPE,
-  getTestOAuth,
+  getTestAuth,
+  GOOGLE_TOKENINFO_URL,
+  installFetchRouter,
+  installGoogleTokenFetchMock,
   installLocalStorageMock,
-  TOKEN_KEY,
-  type GoogleOAuth,
-} from "./mocks/oauth-harness.ts";
-import {
-  clearGoogleOAuthMock,
-  installGoogleOAuthMock,
-} from "./mocks/google.ts";
+  installLocationMock,
+  installSessionStorageMock,
+  loadAuthSession,
+  resetTestAuthState,
+  seedAuthSession,
+  type GoogleAuth,
+} from "./mocks/g-auth-harness.ts";
 
 describe("DriveSocket", () => {
   let drive: DriveApiFixture;
   let restoreFetch: () => void;
+  let restoreTokenFetch: () => void = () => {};
   let localStorageMock: { storage: Map<string, string> };
-  let oauth: GoogleOAuth;
+  let auth: GoogleAuth;
   const openSockets: DriveSocket[] = [];
 
   function seedRootPath(rootPath = DEFAULT_ROOT_PATH) {
@@ -50,10 +53,10 @@ describe("DriveSocket", () => {
   async function connectSocket(
     overrides: Partial<DriveSocketConfig> = {},
   ): Promise<DriveSocket> {
-    await oauth.authenticate();
+    await auth.authenticate();
     const socket = await DriveSocket.connect(
       defaultDriveSocketConfig(overrides),
-      oauth,
+      auth,
     );
     openSockets.push(socket);
     return socket;
@@ -62,17 +65,21 @@ describe("DriveSocket", () => {
   beforeEach(() => {
     drive = new DriveApiFixture();
     localStorageMock = installLocalStorageMock();
-    installGoogleOAuthMock();
-    oauth = getTestOAuth();
+    installSessionStorageMock();
+    installLocationMock();
+    auth = getTestAuth();
+    const session = seedAuthSession(localStorageMock.storage);
+    loadAuthSession(auth, session);
     restoreFetch = drive.installFetch();
+    restoreTokenFetch = installGoogleTokenFetchMock();
   });
 
   afterEach(async () => {
     await Promise.all(
       openSockets.splice(0).map((socket) => socket.disconnect()),
     );
+    restoreTokenFetch();
     restoreFetch();
-    clearGoogleOAuthMock();
   });
 
   describe("config validation", () => {
@@ -80,7 +87,7 @@ describe("DriveSocket", () => {
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ pollIntervalInMs: 0 }),
-          createMockOAuth(DRIVE_APPDATA_SCOPE),
+          createMockAuth(DRIVE_APPDATA_SCOPE),
         ),
       ).rejects.toThrow("pollIntervalInMs must be > 0");
     });
@@ -89,7 +96,7 @@ describe("DriveSocket", () => {
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ maxFiles: -1 }),
-          createMockOAuth(DRIVE_APPDATA_SCOPE),
+          createMockAuth(DRIVE_APPDATA_SCOPE),
         ),
       ).rejects.toThrow("maxFiles must be >= 0");
     });
@@ -98,7 +105,7 @@ describe("DriveSocket", () => {
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ rootPath: "" }),
-          createMockOAuth(DRIVE_APPDATA_SCOPE),
+          createMockAuth(DRIVE_APPDATA_SCOPE),
         ),
       ).rejects.toThrow("rootPath must not be empty");
     });
@@ -133,7 +140,7 @@ describe("DriveSocket", () => {
           clientType: "multi-tenant",
           rootPath: "shared-sync",
         }),
-        createMockOAuth(DRIVE_FILE_SCOPE),
+        createMockAuth(DRIVE_FILE_SCOPE),
       );
       openSockets.push(socket);
 
@@ -158,20 +165,25 @@ describe("DriveSocket", () => {
   });
 
   describe("auth", () => {
-    it("loads tokens from localStorage on authenticate", async () => {
+    it("loads session from localStorage on authenticate", async () => {
       localStorageMock.storage.set(
-        TOKEN_KEY,
+        AUTH_SESSION_KEY,
         JSON.stringify({
-          accessToken: "stored-access",
+          access_token: "stored-access",
+          refresh_token: "stored-refresh",
           expiresAt: Date.now() + 3600_000,
         }),
+      );
+      loadAuthSession(
+        auth,
+        JSON.parse(localStorageMock.storage.get(AUTH_SESSION_KEY)!),
       );
 
       const socket = await connectSocket();
 
-      const raw = localStorageMock.storage.get(TOKEN_KEY);
+      const raw = localStorageMock.storage.get(AUTH_SESSION_KEY);
       expect(raw).toBeTruthy();
-      expect(JSON.parse(raw!).accessToken).toBe("stored-access");
+      expect(JSON.parse(raw!).access_token).toBe("stored-access");
       await expect(
         socket.push({
           fileBlob: new Blob(["{}"]),
@@ -179,37 +191,6 @@ describe("DriveSocket", () => {
           fileName: "a.json",
         }),
       ).resolves.toBeDefined();
-    });
-
-    it("silently renews expired tokens on authenticate via GIS", async () => {
-      let silentRequestCount = 0;
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({
-        onTokenRequest: (config) => {
-          if (config?.prompt === "") silentRequestCount += 1;
-        },
-      });
-
-      localStorageMock.storage.set(
-        TOKEN_KEY,
-        JSON.stringify({
-          accessToken: "expired-access",
-          expiresAt: Date.now() - 1000,
-        }),
-      );
-
-      await oauth.authenticate();
-
-      expect(silentRequestCount).toBeGreaterThan(0);
-    });
-
-    it("authenticate rejects when silent and login both fail", async () => {
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({ silentFails: true, loginFails: true });
-
-      await expect(oauth.authenticate()).rejects.toBeInstanceOf(
-        NotAuthenticatedError,
-      );
     });
 
     it("connect resolves rootPath after authenticate", async () => {
@@ -220,41 +201,10 @@ describe("DriveSocket", () => {
       expect(() => socket.start()).not.toThrow();
     });
 
-    it("authenticate uses token client with configured scopes", async () => {
-      let capturedScope = "";
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({
-        onTokenInit: (config) => {
-          capturedScope = config.scope;
-        },
-      });
-
-      await oauth.authenticate();
-
-      expect(capturedScope).toBe(DRIVE_APPDATA_SCOPE);
-    });
-
-    it("allows only one oauth singleton per page", () => {
-      expect(() =>
-        getOAuthSingleton({
-          googleApiClientId: "other-client",
-          googleOAuthTokenScopes: DRIVE_APPDATA_SCOPE,
-        }),
-      ).toThrow(/one oauth singleton per html page/i);
-    });
-
-    it("persists tokens to localStorage after authenticate", async () => {
-      await oauth.authenticate();
-
-      const raw = localStorageMock.storage.get(TOKEN_KEY);
-      expect(raw).toBeTruthy();
-      expect(JSON.parse(raw!).accessToken).toBe("test-access-token");
-    });
-
-    it("keeps persisted tokens in localStorage after connect", async () => {
+    it("keeps persisted session in localStorage after connect", async () => {
       const socket = await connectSocket();
 
-      expect(localStorageMock.storage.has(TOKEN_KEY)).toBe(true);
+      expect(localStorageMock.storage.has(AUTH_SESSION_KEY)).toBe(true);
       await expect(
         socket.push({
           fileBlob: new Blob(["{}"]),
@@ -262,16 +212,47 @@ describe("DriveSocket", () => {
           fileName: "active.json",
         }),
       ).resolves.toBeDefined();
-      expect(localStorageMock.storage.has(TOKEN_KEY)).toBe(true);
+      expect(localStorageMock.storage.has(AUTH_SESSION_KEY)).toBe(true);
     });
 
-    it("disconnect leaves oauth tokens in localStorage", async () => {
+    it("disconnect leaves auth session in localStorage", async () => {
       const socket = await connectSocket();
-      expect(localStorageMock.storage.has(TOKEN_KEY)).toBe(true);
+      expect(localStorageMock.storage.has(AUTH_SESSION_KEY)).toBe(true);
 
       await socket.disconnect();
 
-      expect(localStorageMock.storage.has(TOKEN_KEY)).toBe(true);
+      expect(localStorageMock.storage.has(AUTH_SESSION_KEY)).toBe(true);
+    });
+
+    it("connect succeeds after authenticate refreshes a remotely invalid session", async () => {
+      seedRootPath();
+      restoreTokenFetch();
+      restoreTokenFetch = installGoogleTokenFetchMock();
+      loadAuthSession(
+        auth,
+        seedAuthSession(localStorageMock.storage, {
+          access_token: "stale-access",
+          expiresAt: Date.now() + 3600_000,
+        }),
+      );
+
+      const restoreTokeninfoFetch = installFetchRouter((url) => {
+        if (url.startsWith(GOOGLE_TOKENINFO_URL)) {
+          return new Response("invalid token", { status: 400 });
+        }
+        return null;
+      });
+
+      const socket = await DriveSocket.connect(
+        defaultDriveSocketConfig({ pollIntervalInMs: 50_000 }),
+        auth,
+      );
+      openSockets.push(socket);
+      restoreTokeninfoFetch();
+
+      expect(localStorageMock.storage.get(AUTH_SESSION_KEY)).toContain(
+        "refreshed-access-token",
+      );
     });
   });
 
@@ -301,15 +282,14 @@ describe("DriveSocket", () => {
     });
 
     it("rejects when not authenticated", async () => {
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({ silentFails: true, loginFails: true });
+      resetTestAuthState(auth);
 
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ pollIntervalInMs: 50_000 }),
-          oauth,
+          auth,
         ),
-      ).rejects.toBeInstanceOf(NotAuthenticatedError);
+      ).rejects.toThrow(/Redirecting for authentication/i);
     });
 
     it("uploads into configured rootPath", async () => {
@@ -543,14 +523,21 @@ describe("DriveSocket", () => {
     });
 
     it("renews expired tokens during polling without user interaction", async () => {
-      let silentRequestCount = 0;
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({
+      let refreshCount = 0;
+      restoreTokenFetch();
+      restoreTokenFetch = installGoogleTokenFetchMock({
         expiresIn: 61,
-        onTokenRequest: (config) => {
-          if (config?.prompt === "") silentRequestCount += 1;
+        onRefresh: () => {
+          refreshCount += 1;
         },
       });
+
+      loadAuthSession(
+        auth,
+        seedAuthSession(localStorageMock.storage, {
+          expiresAt: Date.now() + 61_000,
+        }),
+      );
 
       const socket = await connectSocket({ pollIntervalInMs: 100 });
 
@@ -562,7 +549,7 @@ describe("DriveSocket", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 250));
 
-      expect(silentRequestCount).toBeGreaterThan(0);
+      expect(refreshCount).toBeGreaterThan(0);
       expect(batches.length).toBeGreaterThan(0);
     });
 
@@ -703,15 +690,14 @@ describe("DriveSocket", () => {
     });
 
     it("rejects connect when not authenticated", async () => {
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({ silentFails: true, loginFails: true });
+      resetTestAuthState(auth);
 
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ pollIntervalInMs: 50_000 }),
-          oauth,
+          auth,
         ),
-      ).rejects.toBeInstanceOf(NotAuthenticatedError);
+      ).rejects.toThrow(/Redirecting for authentication/i);
     });
   });
 

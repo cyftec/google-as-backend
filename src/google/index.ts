@@ -1,3 +1,3 @@
 export * from "./drive-folder";
-export * from "./oauth";
+export * from "./g-auth";
 export * from "./utils/mime-helpers";

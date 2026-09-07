@@ -1,12 +1,12 @@
 import { DriveAmbiguousPathError } from "../errors/drive-ambiguous-path-error.ts";
 import { DriveApiError } from "../errors/drive-api-error.ts";
 import { DriveScopeError } from "../errors/drive-scope-error.ts";
-import type { GoogleOAuth } from "./oauth.ts";
+import type { GoogleAuth } from "./g-auth";
 
 export type DriveSpace = "appDataFolder" | "drive";
 
 export interface GoogleDriveFolderConfig {
-  oauth: GoogleOAuth;
+  auth: GoogleAuth;
   space: DriveSpace;
   rootFolderPath: string;
 }
@@ -18,7 +18,7 @@ export type DriveFileEntry = {
   mimeType: string;
 };
 
-type DriveContext = Pick<GoogleDriveFolderConfig, "oauth" | "space">;
+type DriveContext = Pick<GoogleDriveFolderConfig, "auth" | "space">;
 
 type ResolvedRootFolder = {
   rootFolderId: string;
@@ -46,7 +46,7 @@ function normalizePath(path: string): string[] {
 
 function assertSpaceScope(config: GoogleDriveFolderConfig): void {
   const configuredScopes = new Set(
-    config.oauth.getConfiguredScopes().split(/\s+/).filter(Boolean),
+    config.auth.getConfiguredScopes().split(/\s+/).filter(Boolean),
   );
   const requiredScopes = SPACE_SCOPES[config.space];
   const hasScope = requiredScopes.some((scope) => configuredScopes.has(scope));
@@ -71,12 +71,12 @@ async function parseDriveError(response: Response): Promise<DriveApiError> {
 }
 
 async function driveRequest(
-  oauth: GoogleOAuth,
+  auth: GoogleAuth,
   driveOperationEndpoint: string,
   driveOperationSubpath: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const response = await oauth.authorizedFetch(
+  const response = await auth.fetch(
     `${driveOperationEndpoint}${driveOperationSubpath}`,
     init,
   );
@@ -103,7 +103,7 @@ async function queryFiles(
     if (pageToken) params.set("pageToken", pageToken);
 
     const response = await driveRequest(
-      ctx.oauth,
+      ctx.auth,
       METADATA_OPERATIONS_ENDPOINT,
       `/files?${params.toString()}`,
     );
@@ -144,7 +144,7 @@ async function folderSegmentId(
   }
 
   const response = await driveRequest(
-    ctx.oauth,
+    ctx.auth,
     METADATA_OPERATIONS_ENDPOINT,
     "/files?fields=id",
     {
@@ -183,7 +183,7 @@ async function walkFolderPath(
 async function resolveRootFolder(
   config: GoogleDriveFolderConfig,
 ): Promise<ResolvedRootFolder> {
-  const ctx = { oauth: config.oauth, space: config.space };
+  const ctx = { auth: config.auth, space: config.space };
   const segments = normalizePath(config.rootFolderPath);
   const pathToFolderIdMap = new Map<string, string>();
   const spaceRootParentId =
@@ -214,7 +214,7 @@ export class GoogleDriveFolder {
     config: GoogleDriveFolderConfig,
     resolvedRoot: ResolvedRootFolder,
   ) {
-    this.ctx = { oauth: config.oauth, space: config.space };
+    this.ctx = { auth: config.auth, space: config.space };
     this.rootFolderId = resolvedRoot.rootFolderId;
     this.pathToFolderIdMap = resolvedRoot.pathToFolderIdMap;
   }
@@ -239,7 +239,7 @@ export class GoogleDriveFolder {
     const file = await this.findFileInParent(parentFolderId, name);
     return (
       await driveRequest(
-        this.ctx.oauth,
+        this.ctx.auth,
         METADATA_OPERATIONS_ENDPOINT,
         `/files/${file.id}?alt=media`,
       )
@@ -254,7 +254,7 @@ export class GoogleDriveFolder {
     const { parentFolderId, name } = await this.splitPath(relativePath, true);
     const body = this.encodeMultipart(name, parentFolderId, mimeType, fileBlob);
     const response = await driveRequest(
-      this.ctx.oauth,
+      this.ctx.auth,
       UPLOAD_OPERATION_ENDPOINT,
       "/files?uploadType=multipart&fields=id,name,createdTime,mimeType",
       { method: "POST", body },
@@ -286,7 +286,7 @@ export class GoogleDriveFolder {
 
   async deleteById(fileId: string): Promise<void> {
     await driveRequest(
-      this.ctx.oauth,
+      this.ctx.auth,
       METADATA_OPERATIONS_ENDPOINT,
       `/files/${fileId}`,
       { method: "DELETE" },

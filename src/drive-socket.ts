@@ -9,8 +9,8 @@ import {
   supportedMimeType,
   type DriveFileEntry,
   type DriveSpace,
-  type GoogleOAuth,
 } from "./google";
+import type { GoogleAuth } from "./google";
 
 /** New message payload sent by the caller for upload. */
 export type NewMessagePayload = {
@@ -43,7 +43,7 @@ function spaceForClientType(clientType: DriveSocketClientType): DriveSpace {
 }
 
 export class DriveSocket {
-  private readonly folder: GoogleDriveFolder;
+  private readonly socketFolder: GoogleDriveFolder;
 
   private active = true;
   private pollLoopRunning = false;
@@ -52,24 +52,30 @@ export class DriveSocket {
 
   private constructor(
     private readonly config: DriveSocketConfig,
-    folder: GoogleDriveFolder,
+    driveFolder: GoogleDriveFolder,
   ) {
-    this.folder = folder;
+    this.socketFolder = driveFolder;
   }
 
   static async connect(
     config: DriveSocketConfig,
-    oauth: GoogleOAuth,
+    auth: GoogleAuth,
   ): Promise<DriveSocket> {
     DriveSocket.validateConfig(config);
+    if (!(await auth.isAuthenticated(true))) {
+      await auth.authenticate();
+    }
+    if (!(await auth.isAuthenticated())) {
+      throw new Error("Redirecting for authentication...");
+    }
 
-    const folder = await GoogleDriveFolder.getFolderHandle({
-      oauth,
+    const driveFolder = await GoogleDriveFolder.getFolderHandle({
+      auth,
       space: spaceForClientType(config.clientType),
       rootFolderPath: config.rootPath,
     });
 
-    return new DriveSocket(config, folder);
+    return new DriveSocket(config, driveFolder);
   }
 
   onReceive(callback: (messages: DriveMessage[]) => void): void {
@@ -123,18 +129,18 @@ export class DriveSocket {
     }
 
     this.assertActive();
-    if (await this.folder.exists(fileName)) {
+    if (await this.socketFolder.exists(fileName)) {
       throw new MessageExistsError(fileName);
     }
 
-    const saved = await this.folder.write(fileName, fileBlob, mimeType);
+    const saved = await this.socketFolder.write(fileName, fileBlob, mimeType);
     this.pruneToMaxFiles().catch(() => {});
     return { ...saved, fileBlob, isError: false };
   }
 
   async delete(messageId: string): Promise<void> {
     this.assertActive();
-    await this.folder.deleteById(messageId);
+    await this.socketFolder.deleteById(messageId);
   }
 
   private static validateConfig(config: DriveSocketConfig): void {
@@ -156,13 +162,15 @@ export class DriveSocket {
   }
 
   private async pruneToMaxFiles(): Promise<void> {
-    const files = this.sortFilesByCreatedTimeDesc(await this.folder.files());
+    const files = this.sortFilesByCreatedTimeDesc(
+      await this.socketFolder.files(),
+    );
 
     if (files.length <= this.config.maxFiles) return;
 
     const toDelete = files.slice(this.config.maxFiles);
     for (const file of toDelete) {
-      await this.folder.deleteById(file.id);
+      await this.socketFolder.deleteById(file.id);
     }
   }
 
@@ -176,11 +184,13 @@ export class DriveSocket {
   }
 
   private async downloadFolderMessages(): Promise<DriveMessage[]> {
-    const files = this.sortFilesByCreatedTimeDesc(await this.folder.files());
+    const files = this.sortFilesByCreatedTimeDesc(
+      await this.socketFolder.files(),
+    );
     return Promise.all(
       files.map(async (file) => {
         try {
-          const fileBlob = await this.folder.read(file.name);
+          const fileBlob = await this.socketFolder.read(file.name);
           return { ...file, fileBlob, isError: false };
         } catch {
           return {

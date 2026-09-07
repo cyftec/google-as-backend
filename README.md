@@ -4,9 +4,10 @@ Google Drive `appDataFolder` messaging for static PWAs — push immutable file m
 
 ## Requirements
 
-- Browser environment (OAuth via Google Identity Services)
+- Browser environment (OAuth 2.0 PKCE redirect flow)
 - Google Cloud OAuth 2.0 client ID (Web application)
-- OAuth scope: `https://www.googleapis.com/auth/drive.appdata`
+- Authorized redirect URI matching your PWA origin (defaults to `origin + pathname`)
+- OAuth scope: `https://www.googleapis.com/auth/drive.appdata` (single-tenant) or `https://www.googleapis.com/auth/drive.file` (multi-tenant)
 - TypeScript ^5 (package ships `.ts` sources)
 
 ## Install
@@ -18,21 +19,26 @@ npm install @cyftec/drive-socket
 ## Setup
 
 1. Create a Google Cloud project and OAuth **Web client** credentials.
-2. Add your PWA origin to authorized JavaScript origins.
-3. Create a `GoogleOAuth` instance and pass it to `DriveSocket.connect`.
+2. Add your PWA origin to **Authorized JavaScript origins**.
+3. Add your redirect URI (typically `https://your-app.example/`) to **Authorized redirect URIs**.
+4. Create a `GoogleAuth` instance, call `authenticate()`, then pass it to `DriveSocket.connect`.
 
 ## Usage
 
 ```typescript
-import { DriveSocket, getOAuthSingleton } from "@cyftec/drive-socket";
+import { DriveSocket, getGoogleAuthSingleton } from "@cyftec/drive-socket";
 
-const oauth = getOAuthSingleton({
+const auth = getGoogleAuthSingleton({
   googleApiClientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
   googleOAuthTokenScopes: "https://www.googleapis.com/auth/drive.appdata",
 });
 
-// First visit: user must click sign-in (OAuth popup)
-await oauth.authenticate();
+// First visit: redirects to Google sign-in (PKCE). Callback URL is cleaned automatically.
+await auth.authenticate();
+
+if (!(await auth.isAuthenticated())) {
+  throw new Error("Authentication required.");
+}
 
 const socket = await DriveSocket.connect(
   {
@@ -41,7 +47,7 @@ const socket = await DriveSocket.connect(
     pollIntervalInMs: 5000,
     maxFiles: 20,
   },
-  oauth,
+  auth,
 );
 
 // Push a JSON message with a user-provided filename
@@ -64,17 +70,23 @@ socket.onReceive(async (messages) => {
 });
 
 await socket.disconnect();
+await auth.logout();
 ```
 
-On authenticate, `GoogleOAuth` restores tokens from `localStorage` when present, or requests new ones via GIS (silent renewal first, then interactive sign-in). Acquired tokens are persisted to `localStorage` for session continuity across page reloads.
+On `authenticate()`, `GoogleAuth` processes OAuth callback query params when present, restores a valid session from `localStorage` (`google_auth_session`), silently refreshes expired access tokens via the stored refresh token, or redirects to Google for interactive consent. `isAuthenticated()` checks local session validity and can optionally verify the access token remotely. `DriveSocket.connect()` verifies authentication before resolving the folder. `auth.fetch()` attaches the bearer token and recovers from mid-request 401/403 auth failures and transient 5xx responses. `logout()` revokes the refresh token (or access token) at Google and clears all local auth state.
 
-Sign-in uses the GIS token model (no backend `client_secret` required). After the user approves access once, the library silently requests new access tokens for hours-long sessions.
+Sign-in uses the authorization-code + PKCE model (no backend `client_secret` required). After the user approves access once, refresh tokens enable silent renewal across page reloads.
 
 ## API
 
 | Method | Description |
 |--------|-------------|
-| `DriveSocket.connect(config, oauth)` | Authenticate via `oauth`, resolve `rootPath`, return a connected socket |
+| `getGoogleAuthSingleton(config)` | One `GoogleAuth` instance per page |
+| `GoogleAuth.authenticate()` | Handle OAuth callback, restore/refresh session, or redirect to Google |
+| `GoogleAuth.isAuthenticated(checkRemote?)` | Return whether a valid session exists; optionally verify remotely |
+| `GoogleAuth.logout()` | Revoke tokens on Google and clear persisted session and in-flight PKCE state |
+| `GoogleAuth.fetch(url, init?)` | Authorized `fetch` with token refresh and retry logic |
+| `DriveSocket.connect(config, auth)` | Verify auth, resolve `rootPath` in Drive, and return a connected socket |
 | `disconnect()` | Stop polling and mark the socket inactive |
 | `push(payload)` | Upload immutable message; returns saved `DriveMessage` while prune runs in the background |
 | `onReceive(callback)` | Poll on `pollIntervalInMs`; download and emit all folder files each cycle |
@@ -98,6 +110,14 @@ If a cycle is still running when `pollIntervalInMs` would elapse, the timer is h
 | `rootPath` | Folder path under the space (created if missing) |
 | `pollIntervalInMs` | Poll cycle length in milliseconds |
 | `maxFiles` | Maximum files kept in folder (oldest pruned in the background after each `push`) |
+
+### `GoogleAuthConfig`
+
+| Property | Description |
+|----------|-------------|
+| `googleApiClientId` | OAuth Web client ID |
+| `googleOAuthTokenScopes` | Space-separated scope string or array of scopes |
+| `redirectUri` | Optional override; defaults to `window.location.origin + window.location.pathname` |
 
 ### `NewMessagePayload`
 
