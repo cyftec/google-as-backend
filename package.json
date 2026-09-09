@@ -39,8 +39,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tests.json",
-    "test:typecheck": "bun typecheck",
+    "typecheck": "bun x tsc --noEmit && bun x tsc --noEmit -p tsconfig.tests.json",
+    "test:typecheck": "bun run typecheck",
     "test:runtime": "bun test",
     "tests": "bun run test:runtime && bun run test:typecheck",
     "prepublishOnly": "bun tests"

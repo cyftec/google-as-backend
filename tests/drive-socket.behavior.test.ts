@@ -80,7 +80,7 @@ describe("DriveSocket", () => {
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ pollIntervalInMs: 0 }),
-          createMockOAuth(DRIVE_APPDATA_SCOPE),
+          createMockOAuth([DRIVE_APPDATA_SCOPE]),
         ),
       ).rejects.toThrow("pollIntervalInMs must be > 0");
     });
@@ -89,7 +89,7 @@ describe("DriveSocket", () => {
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ maxFiles: -1 }),
-          createMockOAuth(DRIVE_APPDATA_SCOPE),
+          createMockOAuth([DRIVE_APPDATA_SCOPE]),
         ),
       ).rejects.toThrow("maxFiles must be >= 0");
     });
@@ -98,7 +98,7 @@ describe("DriveSocket", () => {
       await expect(
         DriveSocket.connect(
           defaultDriveSocketConfig({ rootPath: "" }),
-          createMockOAuth(DRIVE_APPDATA_SCOPE),
+          createMockOAuth([DRIVE_APPDATA_SCOPE]),
         ),
       ).rejects.toThrow("rootPath must not be empty");
     });
@@ -133,7 +133,7 @@ describe("DriveSocket", () => {
           clientType: "multi-tenant",
           rootPath: "shared-sync",
         }),
-        createMockOAuth(DRIVE_FILE_SCOPE),
+        createMockOAuth([DRIVE_FILE_SCOPE]),
       );
       openSockets.push(socket);
 
@@ -238,7 +238,7 @@ describe("DriveSocket", () => {
       expect(() =>
         getOAuthSingleton({
           googleApiClientId: "other-client",
-          googleOAuthTokenScopes: DRIVE_APPDATA_SCOPE,
+          googleOAuthTokenScopes: [DRIVE_APPDATA_SCOPE],
         }),
       ).toThrow(/one oauth singleton per html page/i);
     });

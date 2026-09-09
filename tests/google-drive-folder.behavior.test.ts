@@ -30,7 +30,7 @@ describe("GoogleDriveFolder", () => {
     it("throws DriveScopeError when appDataFolder scope is missing", async () => {
       await expect(
         GoogleDriveFolder.getFolderHandle({
-          oauth: createMockOAuth(DRIVE_FILE_SCOPE),
+          oauth: createMockOAuth([DRIVE_FILE_SCOPE]),
           space: "appDataFolder",
           rootFolderPath: "my-app",
         }),
@@ -40,7 +40,7 @@ describe("GoogleDriveFolder", () => {
     it("accepts drive.file scope for drive space", async () => {
       await expect(
         GoogleDriveFolder.getFolderHandle({
-          oauth: createMockOAuth(DRIVE_FILE_SCOPE),
+          oauth: createMockOAuth([DRIVE_FILE_SCOPE]),
           space: "drive",
           rootFolderPath: "my-app",
         }),
@@ -50,7 +50,7 @@ describe("GoogleDriveFolder", () => {
     it("throws DriveScopeError when drive space has only appDataFolder scope", async () => {
       await expect(
         GoogleDriveFolder.getFolderHandle({
-          oauth: createMockOAuth(DRIVE_APPDATA_SCOPE),
+          oauth: createMockOAuth([DRIVE_APPDATA_SCOPE]),
           space: "drive",
           rootFolderPath: "my-app",
         }),
@@ -59,7 +59,7 @@ describe("GoogleDriveFolder", () => {
   });
 
   describe("appDataFolder space", () => {
-    const oauth = createMockOAuth(DRIVE_APPDATA_SCOPE);
+    const oauth = createMockOAuth([DRIVE_APPDATA_SCOPE]);
 
     it("getFolderHandle creates nested root when absent", async () => {
       await GoogleDriveFolder.getFolderHandle({
@@ -234,7 +234,7 @@ describe("GoogleDriveFolder", () => {
   });
 
   describe("drive space", () => {
-    const oauth = createMockOAuth(DRIVE_FILE_SCOPE);
+    const oauth = createMockOAuth([DRIVE_FILE_SCOPE]);
 
     it("getFolderHandle creates root under My Drive with drive spaces param", async () => {
       await GoogleDriveFolder.getFolderHandle({

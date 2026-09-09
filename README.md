@@ -28,7 +28,7 @@ import { DriveSocket, getOAuthSingleton } from "@cyftec/drive-socket";
 
 const oauth = getOAuthSingleton({
   googleApiClientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
-  googleOAuthTokenScopes: "https://www.googleapis.com/auth/drive.appdata",
+  googleOAuthTokenScopes: ["https://www.googleapis.com/auth/drive.appdata"],
 });
 
 // First visit: user must click sign-in (OAuth popup)

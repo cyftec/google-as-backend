@@ -1,0 +1,13 @@
+---
+description: Bun runtime and scripts — never use npm for this project
+alwaysApply: true
+---
+
+# Bun Project
+
+This is a Bun project. Use Bun for scripts, tests, and package management.
+
+- Run tests: `bun test`
+- Typecheck: `bun typecheck`
+- Full check suite: `bun tests`
+- Do not use `npm`, `npm run`, or `npx` for project scripts.
