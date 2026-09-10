@@ -28,10 +28,30 @@ bun run tests
 | `bun run test:runtime:oauth` | OAuth package tests only |
 | `bun run test:runtime:folder` | Drive folder package tests only |
 | `bun run test:runtime:as-socket` | Drive socket package tests only |
+| `bun run test:runtime:monorepo` | Root publish workflow tests only |
 | `bun run test:types` | Typecheck all packages (src + tests) |
 | `bun run test:types:oauth` | Typecheck oauth package only |
 | `bun run test:types:folder` | Typecheck drive-folder package only |
 | `bun run test:types:as-socket` | Typecheck drive-socket package only |
+
+## Publishing
+
+All three packages publish at the same version. Inter-package deps use `workspace:*` locally; Bun resolves them to the target version at publish time. A pre-publish check verifies sibling versions align before anything reaches the registry.
+
+```bash
+bun run publish:login                  # one-time npm auth (via bunx) — required even for dry-run
+bun run publish -- 0.5.42 --dry-run    # rehearsal — no registry writes, files restored
+bun run publish -- 0.5.42              # release oauth → folder → as-socket
+```
+
+After a real publish, package versions are bumped in git and `workspace:*` deps are restored for local development. Commit the version bumps before or after publishing as you prefer.
+
+| Script | Description |
+|--------|-------------|
+| `bun run publish:login` | Authenticate with npm registry |
+| `bun run publish:check` | Validate workspace deps resolve (requires bumped versions) |
+| `bun run publish -- <ver> --dry-run` | Full dry-run of check, tests, and `bun publish --dry-run` |
+| `bun run publish -- <ver>` | Publish all packages at `<ver>` |
 
 ## Install (consumers)
 
