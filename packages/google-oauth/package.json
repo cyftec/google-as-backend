@@ -1,0 +1,30 @@
+{
+  "name": "@cyftec/google-oauth",
+  "version": "0.1.0",
+  "description": "Google Identity Services OAuth for browser PWAs \u2014 token client, localStorage persistence, authorized fetch.",
+  "license": "MIT",
+  "author": "Cyftec",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "bun x tsc --noEmit && bun x tsc --noEmit -p tsconfig.tests.json",
+    "test:runtime": "bun test",
+    "tests": "bun run test:runtime && bun run typecheck"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

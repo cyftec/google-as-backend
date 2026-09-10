@@ -12,8 +12,6 @@
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "rootDir": "src"
-  },
-  "include": ["src"]
+    "noImplicitOverride": true
+  }
 }

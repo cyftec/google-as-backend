@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   supportedMimeType,
   mimeToExtension,
-} from "../src/google/utils/mime-helpers";
+} from "../src/utils/mime-helpers.ts";
 
 describe("mime helpers", () => {
   it("accepts supported mime types", () => {

@@ -1,7 +1,7 @@
 import {
   getOAuthSingleton,
   type GoogleOAuth,
-} from "../../src/google/oauth.ts";
+} from "../../src/oauth.ts";
 
 export type { GoogleOAuth };
 
@@ -12,15 +12,6 @@ export const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 export const TOKEN_KEY = `drive-socket:tokens:${CLIENT_ID}:${DRIVE_APPDATA_SCOPE}`;
 
 let oauthSingleton: GoogleOAuth | null = null;
-
-export function createMockOAuth(scopes: readonly string[]): GoogleOAuth {
-  const googleOAuthTokenScopes = scopes.join(" ");
-  return {
-    getConfiguredScopes: () => googleOAuthTokenScopes,
-    authenticate: async () => {},
-    authorizedFetch: (url, init) => fetch(url, init),
-  } as GoogleOAuth;
-}
 
 export function getTestOAuth(): GoogleOAuth {
   if (!oauthSingleton) {

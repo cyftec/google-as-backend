@@ -4,13 +4,12 @@ import {
   InvalidMimeError,
   MessageExistsError,
   NotAuthenticatedError,
-} from "../src/errors/index.ts";
+} from "../src/index.ts";
 import {
   DriveSocket,
   type DriveMessage,
   type DriveSocketConfig,
 } from "../src/index.ts";
-import { getOAuthSingleton } from "../src/google/oauth.ts";
 import { DriveApiFixture } from "./mocks/drive-api.ts";
 import {
   DEFAULT_ROOT_PATH,
@@ -181,36 +180,7 @@ describe("DriveSocket", () => {
       ).resolves.toBeDefined();
     });
 
-    it("silently renews expired tokens on authenticate via GIS", async () => {
-      let silentRequestCount = 0;
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({
-        onTokenRequest: (config) => {
-          if (config?.prompt === "") silentRequestCount += 1;
-        },
-      });
 
-      localStorageMock.storage.set(
-        TOKEN_KEY,
-        JSON.stringify({
-          accessToken: "expired-access",
-          expiresAt: Date.now() - 1000,
-        }),
-      );
-
-      await oauth.authenticate();
-
-      expect(silentRequestCount).toBeGreaterThan(0);
-    });
-
-    it("authenticate rejects when silent and login both fail", async () => {
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({ silentFails: true, loginFails: true });
-
-      await expect(oauth.authenticate()).rejects.toBeInstanceOf(
-        NotAuthenticatedError,
-      );
-    });
 
     it("connect resolves rootPath after authenticate", async () => {
       seedRootPath();
@@ -220,36 +190,8 @@ describe("DriveSocket", () => {
       expect(() => socket.start()).not.toThrow();
     });
 
-    it("authenticate uses token client with configured scopes", async () => {
-      let capturedScope = "";
-      clearGoogleOAuthMock();
-      installGoogleOAuthMock({
-        onTokenInit: (config) => {
-          capturedScope = config.scope;
-        },
-      });
 
-      await oauth.authenticate();
 
-      expect(capturedScope).toBe(DRIVE_APPDATA_SCOPE);
-    });
-
-    it("allows only one oauth singleton per page", () => {
-      expect(() =>
-        getOAuthSingleton({
-          googleApiClientId: "other-client",
-          googleOAuthTokenScopes: [DRIVE_APPDATA_SCOPE],
-        }),
-      ).toThrow(/one oauth singleton per html page/i);
-    });
-
-    it("persists tokens to localStorage after authenticate", async () => {
-      await oauth.authenticate();
-
-      const raw = localStorageMock.storage.get(TOKEN_KEY);
-      expect(raw).toBeTruthy();
-      expect(JSON.parse(raw!).accessToken).toBe("test-access-token");
-    });
 
     it("keeps persisted tokens in localStorage after connect", async () => {
       const socket = await connectSocket();

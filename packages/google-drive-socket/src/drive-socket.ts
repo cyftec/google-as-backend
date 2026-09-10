@@ -5,12 +5,11 @@ import {
 } from "./errors/index.ts";
 import {
   GoogleDriveFolder,
-  mimeToExtension,
-  supportedMimeType,
   type DriveFileEntry,
   type DriveSpace,
-  type GoogleOAuth,
-} from "./google";
+} from "@cyftec/google-drive-folder";
+import type { GoogleOAuth } from "@cyftec/google-oauth";
+import { mimeToExtension, supportedMimeType } from "./utils/mime-helpers.ts";
 
 /** New message payload sent by the caller for upload. */
 export type NewMessagePayload = {

@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import {
   DriveAmbiguousPathError,
   DriveScopeError,
-} from "../src/errors/index.ts";
-import { GoogleDriveFolder } from "../src/google/drive-folder.ts";
+} from "../src/index.ts";
+import { GoogleDriveFolder } from "../src/drive-folder.ts";
 import { DriveApiFixture } from "./mocks/drive-api.ts";
 import {
   createMockOAuth,
   DRIVE_APPDATA_SCOPE,
   DRIVE_FILE_SCOPE,
-} from "./mocks/oauth-harness.ts";
+} from "./mocks/oauth.ts";
 
 const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 

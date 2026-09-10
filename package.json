@@ -1,65 +1,31 @@
 {
-  "name": "@cyftec/drive-socket",
-  "version": "0.5.1",
-  "description": "Google Drive appDataFolder messaging for static PWAs — push, receive, and prune immutable file messages over HTTP.",
-  "license": "MIT",
-  "author": "Cyftec",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cyftec/drive-socket.git"
-  },
-  "bugs": {
-    "url": "https://github.com/cyftec/drive-socket/issues"
-  },
-  "homepage": "https://github.com/cyftec/drive-socket#readme",
-  "keywords": [
-    "google-drive",
-    "drive",
-    "appdata",
-    "pwa",
-    "oauth",
-    "messaging",
-    "websocket-alternative",
-    "typescript"
-  ],
-  "type": "module",
-  "sideEffects": false,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "default": "./src/index.ts"
-    }
-  },
-  "files": [
-    "src",
-    "README.md",
-    "LICENSE"
+  "name": "drive-socket-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "typecheck": "bun x tsc --noEmit && bun x tsc --noEmit -p tsconfig.tests.json",
-    "test:typecheck": "bun run typecheck",
-    "test:runtime": "bun test",
-    "tests": "bun run test:runtime && bun run test:typecheck",
-    "prepublishOnly": "bun tests"
+    "test:types:oauth:src": "bun x tsc --noEmit -p packages/google-oauth/tsconfig.json",
+    "test:types:oauth:tests": "bun x tsc --noEmit -p packages/google-oauth/tsconfig.tests.json",
+    "test:types:oauth": "bun run test:types:oauth:src && bun run test:types:oauth:tests",
+    "test:types:folder:src": "bun x tsc --noEmit -p packages/google-drive-folder/tsconfig.json",
+    "test:types:folder:tests": "bun x tsc --noEmit -p packages/google-drive-folder/tsconfig.tests.json",
+    "test:types:folder": "bun run test:types:folder:src && bun run test:types:folder:tests",
+    "test:types:socket:src": "bun x tsc --noEmit -p packages/google-drive-socket/tsconfig.json",
+    "test:types:socket:tests": "bun x tsc --noEmit -p packages/google-drive-socket/tsconfig.tests.json",
+    "test:types:socket": "bun run test:types:socket:src && bun run test:types:socket:tests",
+    "test:types:src": "bun run test:types:oauth:src && bun run test:types:folder:src && bun run test:types:socket:src",
+    "test:types:tests": "bun run test:types:oauth:tests && bun run test:types:folder:tests && bun run test:types:socket:tests",
+    "test:types": "bun run test:types:src && bun run test:types:tests",
+    "test:runtime:oauth": "bun test packages/google-oauth/tests",
+    "test:runtime:folder": "bun test packages/google-drive-folder/tests",
+    "test:runtime:socket": "bun test packages/google-drive-socket/tests",
+    "test:runtime": "bun run test:runtime:oauth && bun run test:runtime:folder && bun run test:runtime:socket",
+    "tests": "bun run test:runtime && bun run test:types"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "bun-types": "latest",
     "typescript": "^5"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "peerDependenciesMeta": {
-    "typescript": {
-      "optional": true
-    }
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   }
 }

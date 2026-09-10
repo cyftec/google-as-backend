@@ -1,4 +1,4 @@
-# @cyftec/drive-socket
+# @cyftec/google-drive-socket
 
 Google Drive `appDataFolder` messaging for static PWAs — push immutable file messages, receive them over a polling socket, and prune old messages on push. TypeScript source is published as-is (no build step).
 
@@ -12,7 +12,7 @@ Google Drive `appDataFolder` messaging for static PWAs — push immutable file m
 ## Install
 
 ```bash
-npm install @cyftec/drive-socket
+npm install @cyftec/google-drive-socket
 ```
 
 ## Setup
@@ -24,7 +24,7 @@ npm install @cyftec/drive-socket
 ## Usage
 
 ```typescript
-import { DriveSocket, getOAuthSingleton } from "@cyftec/drive-socket";
+import { DriveSocket, getOAuthSingleton } from "@cyftec/google-drive-socket";
 
 const oauth = getOAuthSingleton({
   googleApiClientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
@@ -123,6 +123,18 @@ Saved message returned from `push` and `onReceive`. Extends `DriveFileEntry`.
 ## MIME types
 
 Only Google-supported MIME types in the package allowlist are accepted on `push`. The filename extension must match the MIME type. HTML, CSS, and JavaScript MIME types are excluded. See exported `MIME_TO_EXTENSION` and `SupportedMimeType`.
+
+## Monorepo packages
+
+This repository is a Bun workspace with three publishable packages:
+
+| Package | Description |
+|---------|-------------|
+| `@cyftec/google-oauth` | GIS OAuth client, token persistence, `authorizedFetch` |
+| `@cyftec/google-drive-folder` | Drive folder path resolution and CRUD |
+| `@cyftec/google-drive-socket` | PWA messaging socket (re-exports the above for one-import usage) |
+
+Install only `@cyftec/google-drive-socket` for the full API surface, or install the lower-level packages independently.
 
 ## License
 

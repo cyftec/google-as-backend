@@ -1,4 +1,5 @@
-import { NotAuthenticatedError } from "../errors/not-authenticated-error.ts";
+/// <reference path="./gis.d.ts" />
+import { NotAuthenticatedError } from "./errors/not-authenticated-error.ts";
 
 interface StoredTokens {
   accessToken: string;
