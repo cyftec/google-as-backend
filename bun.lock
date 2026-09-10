@@ -10,63 +10,30 @@
         "typescript": "^5",
       },
     },
+    "packages/google-drive-as-socket": {
+      "name": "@cyftec/google-drive-as-socket",
+      "version": "0.1.0",
+      "dependencies": {
+        "@cyftec/google-drive-folder": "workspace:*",
+        "@cyftec/google-oauth": "workspace:*",
+      },
+    },
     "packages/google-drive-folder": {
       "name": "@cyftec/google-drive-folder",
       "version": "0.1.0",
       "dependencies": {
         "@cyftec/google-oauth": "workspace:*",
       },
-      "devDependencies": {
-        "@types/bun": "latest",
-        "bun-types": "latest",
-        "typescript": "^5",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
-      },
-      "optionalPeers": [
-        "typescript",
-      ],
-    },
-    "packages/google-drive-socket": {
-      "name": "@cyftec/google-drive-socket",
-      "version": "0.1.0",
-      "dependencies": {
-        "@cyftec/google-drive-folder": "workspace:*",
-        "@cyftec/google-oauth": "workspace:*",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
-        "bun-types": "latest",
-        "typescript": "^5",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
-      },
-      "optionalPeers": [
-        "typescript",
-      ],
     },
     "packages/google-oauth": {
       "name": "@cyftec/google-oauth",
       "version": "0.1.0",
-      "devDependencies": {
-        "@types/bun": "latest",
-        "bun-types": "latest",
-        "typescript": "^5",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
-      },
-      "optionalPeers": [
-        "typescript",
-      ],
     },
   },
   "packages": {
-    "@cyftec/google-drive-folder": ["@cyftec/google-drive-folder@workspace:packages/google-drive-folder"],
+    "@cyftec/google-drive-as-socket": ["@cyftec/google-drive-as-socket@workspace:packages/google-drive-as-socket"],
 
-    "@cyftec/google-drive-socket": ["@cyftec/google-drive-socket@workspace:packages/google-drive-socket"],
+    "@cyftec/google-drive-folder": ["@cyftec/google-drive-folder@workspace:packages/google-drive-folder"],
 
     "@cyftec/google-oauth": ["@cyftec/google-oauth@workspace:packages/google-oauth"],
 
@@ -79,17 +46,5 @@
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "undici-types": ["undici-types@8.3.0", "", {}, "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="],
-
-    "@cyftec/google-drive-folder/@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],
-
-    "@cyftec/google-drive-folder/bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
-
-    "@cyftec/google-drive-socket/@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],
-
-    "@cyftec/google-drive-socket/bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
-
-    "@cyftec/google-oauth/@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],
-
-    "@cyftec/google-oauth/bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
   }
 }

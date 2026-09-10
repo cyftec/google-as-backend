@@ -1,5 +1,5 @@
 {
-  "name": "@cyftec/google-drive-socket",
+  "name": "@cyftec/google-drive-as-socket",
   "version": "0.1.0",
   "description": "Google Drive appDataFolder messaging for static PWAs — push, receive, and prune immutable file messages over HTTP.",
   "license": "MIT",

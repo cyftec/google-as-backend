@@ -1,4 +1,4 @@
-# @cyftec/google-drive-socket
+# @cyftec/google-drive-as-socket
 
 Google Drive `appDataFolder` messaging for static PWAs — push immutable file messages, receive them over a polling socket, and prune old messages on push. TypeScript source is published as-is (no build step).
 
@@ -12,7 +12,7 @@ Google Drive `appDataFolder` messaging for static PWAs — push immutable file m
 ## Install
 
 ```bash
-npm install @cyftec/google-drive-socket
+npm install @cyftec/google-drive-as-socket
 ```
 
 ## Setup
@@ -24,7 +24,7 @@ npm install @cyftec/google-drive-socket
 ## Usage
 
 ```typescript
-import { DriveSocket, getOAuthSingleton } from "@cyftec/google-drive-socket";
+import { DriveSocket, getOAuthSingleton } from "@cyftec/google-drive-as-socket";
 
 const oauth = getOAuthSingleton({
   googleApiClientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
