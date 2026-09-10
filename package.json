@@ -1,5 +1,5 @@
 {
-  "name": "drive-socket-monorepo",
+  "name": "google-as-backend",
   "private": true,
   "workspaces": [
     "packages/*"
