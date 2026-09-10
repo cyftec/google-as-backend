@@ -1,4 +1,4 @@
-import type { GoogleOAuth } from "@cyftec/google-oauth";
+import type { GoogleOAuth } from "@cyfgoogle/oauth";
 
 export const DRIVE_APPDATA_SCOPE =
   "https://www.googleapis.com/auth/drive.appdata";

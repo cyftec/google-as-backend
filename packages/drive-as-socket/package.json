@@ -1,5 +1,5 @@
 {
-  "name": "@cyftec/google-drive-as-socket",
+  "name": "@cyfgoogle/drive-as-socket",
   "version": "0.1.0",
   "description": "Google Drive appDataFolder messaging for static PWAs — push, receive, and prune immutable file messages over HTTP.",
   "license": "MIT",
@@ -44,8 +44,8 @@
     "prepublishOnly": "bun tests"
   },
   "dependencies": {
-    "@cyftec/google-oauth": "workspace:*",
-    "@cyftec/google-drive-folder": "workspace:*"
+    "@cyfgoogle/oauth": "workspace:*",
+    "@cyfgoogle/drive-folder": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

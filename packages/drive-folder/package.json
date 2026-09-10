@@ -1,7 +1,7 @@
 {
-  "name": "@cyftec/google-drive-folder",
+  "name": "@cyfgoogle/drive-folder",
   "version": "0.1.0",
-  "description": "Google Drive folder client \u2014 path resolution, CRUD, and multipart upload for appDataFolder or drive space.",
+  "description": "Google Drive folder client — path resolution, CRUD, and multipart upload for appDataFolder or drive space.",
   "license": "MIT",
   "author": "Cyftec",
   "type": "module",
@@ -24,7 +24,7 @@
     "tests": "bun run test:runtime && bun run typecheck"
   },
   "dependencies": {
-    "@cyftec/google-oauth": "workspace:*"
+    "@cyfgoogle/oauth": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

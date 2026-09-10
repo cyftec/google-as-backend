@@ -1,7 +1,7 @@
 {
-  "name": "@cyftec/google-oauth",
+  "name": "@cyfgoogle/oauth",
   "version": "0.1.0",
-  "description": "Google Identity Services OAuth for browser PWAs \u2014 token client, localStorage persistence, authorized fetch.",
+  "description": "Google Identity Services OAuth for browser PWAs — token client, localStorage persistence, authorized fetch.",
   "license": "MIT",
   "author": "Cyftec",
   "type": "module",

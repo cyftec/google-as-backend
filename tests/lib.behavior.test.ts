@@ -21,16 +21,16 @@ describe('publish lib', () => {
       expect(
         workspaceDeps({
           dependencies: {
-            '@cyftec/google-oauth': 'workspace:*',
+            '@cyfgoogle/oauth': 'workspace:*',
             lodash: '^4.0.0',
           },
           peerDependencies: {
-            '@cyftec/google-drive-folder': 'workspace:^',
+            '@cyfgoogle/drive-folder': 'workspace:^',
           },
         }),
       ).toEqual([
-        ['@cyftec/google-oauth', 'workspace:*'],
-        ['@cyftec/google-drive-folder', 'workspace:^'],
+        ['@cyfgoogle/oauth', 'workspace:*'],
+        ['@cyfgoogle/drive-folder', 'workspace:^'],
       ]);
     });
   });
@@ -100,24 +100,24 @@ describe('publish lib', () => {
     it('restores workspace:* deps while keeping bumped versions', async () => {
       await bumpPackageVersions(targetVersion);
 
-      const folder = await readPackageJson('packages/google-drive-folder');
-      folder.dependencies!['@cyftec/google-oauth'] = targetVersion;
-      await writePackageJson('packages/google-drive-folder', folder);
+      const folder = await readPackageJson('packages/drive-folder');
+      folder.dependencies!['@cyfgoogle/oauth'] = targetVersion;
+      await writePackageJson('packages/drive-folder', folder);
 
-      const socket = await readPackageJson('packages/google-drive-as-socket');
-      socket.dependencies!['@cyftec/google-oauth'] = targetVersion;
-      socket.dependencies!['@cyftec/google-drive-folder'] = targetVersion;
-      await writePackageJson('packages/google-drive-as-socket', socket);
+      const socket = await readPackageJson('packages/drive-as-socket');
+      socket.dependencies!['@cyfgoogle/oauth'] = targetVersion;
+      socket.dependencies!['@cyfgoogle/drive-folder'] = targetVersion;
+      await writePackageJson('packages/drive-as-socket', socket);
 
       await restoreWorkspaceProtocolDeps(snapshot);
 
-      expect((await readPackageJson('packages/google-oauth')).version).toBe(targetVersion);
-      expect((await readPackageJson('packages/google-drive-folder')).dependencies).toEqual({
-        '@cyftec/google-oauth': 'workspace:*',
+      expect((await readPackageJson('packages/oauth')).version).toBe(targetVersion);
+      expect((await readPackageJson('packages/drive-folder')).dependencies).toEqual({
+        '@cyfgoogle/oauth': 'workspace:*',
       });
-      expect((await readPackageJson('packages/google-drive-as-socket')).dependencies).toEqual({
-        '@cyftec/google-oauth': 'workspace:*',
-        '@cyftec/google-drive-folder': 'workspace:*',
+      expect((await readPackageJson('packages/drive-as-socket')).dependencies).toEqual({
+        '@cyfgoogle/oauth': 'workspace:*',
+        '@cyfgoogle/drive-folder': 'workspace:*',
       });
     });
   });

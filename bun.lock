@@ -10,32 +10,32 @@
         "typescript": "^5",
       },
     },
-    "packages/google-drive-as-socket": {
-      "name": "@cyftec/google-drive-as-socket",
+    "packages/drive-as-socket": {
+      "name": "@cyfgoogle/drive-as-socket",
       "version": "0.1.0",
       "dependencies": {
-        "@cyftec/google-drive-folder": "workspace:*",
-        "@cyftec/google-oauth": "workspace:*",
+        "@cyfgoogle/drive-folder": "workspace:*",
+        "@cyfgoogle/oauth": "workspace:*",
       },
     },
-    "packages/google-drive-folder": {
-      "name": "@cyftec/google-drive-folder",
+    "packages/drive-folder": {
+      "name": "@cyfgoogle/drive-folder",
       "version": "0.1.0",
       "dependencies": {
-        "@cyftec/google-oauth": "workspace:*",
+        "@cyfgoogle/oauth": "workspace:*",
       },
     },
-    "packages/google-oauth": {
-      "name": "@cyftec/google-oauth",
+    "packages/oauth": {
+      "name": "@cyfgoogle/oauth",
       "version": "0.1.0",
     },
   },
   "packages": {
-    "@cyftec/google-drive-as-socket": ["@cyftec/google-drive-as-socket@workspace:packages/google-drive-as-socket"],
+    "@cyfgoogle/drive-as-socket": ["@cyfgoogle/drive-as-socket@workspace:packages/drive-as-socket"],
 
-    "@cyftec/google-drive-folder": ["@cyftec/google-drive-folder@workspace:packages/google-drive-folder"],
+    "@cyfgoogle/drive-folder": ["@cyfgoogle/drive-folder@workspace:packages/drive-folder"],
 
-    "@cyftec/google-oauth": ["@cyftec/google-oauth@workspace:packages/google-oauth"],
+    "@cyfgoogle/oauth": ["@cyfgoogle/oauth@workspace:packages/oauth"],
 
     "@types/bun": ["@types/bun@1.4.0", "", { "dependencies": { "bun-types": "1.4.0" } }, "sha512-K+lZULY23vRgK/CfTjFIV+tyifaNdSMlPh9j+6mQ/cLfpOznLyAuzgV/JQysyECpkBQLVMSyvjlr2fBUSA9wFQ=="],
 

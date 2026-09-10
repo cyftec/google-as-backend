@@ -7,8 +7,8 @@ import {
   GoogleDriveFolder,
   type DriveFileEntry,
   type DriveSpace,
-} from "@cyftec/google-drive-folder";
-import type { GoogleOAuth } from "@cyftec/google-oauth";
+} from "@cyfgoogle/drive-folder";
+import type { GoogleOAuth } from "@cyfgoogle/oauth";
 import { mimeToExtension, supportedMimeType } from "./utils/mime-helpers.ts";
 
 /** New message payload sent by the caller for upload. */

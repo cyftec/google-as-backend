@@ -46,9 +46,9 @@ async function runCommand(
 
 async function publishPackages(dryRun: boolean): Promise<void> {
   const dirs = [
-    'packages/google-oauth',
-    'packages/google-drive-folder',
-    'packages/google-drive-as-socket',
+    'packages/oauth',
+    'packages/drive-folder',
+    'packages/drive-as-socket',
   ] as const;
 
   for (const dir of dirs) {

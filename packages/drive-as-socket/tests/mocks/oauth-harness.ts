@@ -1,7 +1,7 @@
 import {
   getOAuthSingleton,
   type GoogleOAuth,
-} from "@cyftec/google-oauth";
+} from "@cyfgoogle/oauth";
 
 export type { GoogleOAuth };
 

@@ -6,9 +6,9 @@ Bun workspace monorepo for using Google services as a backend from static browse
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| [`@cyftec/google-oauth`](packages/google-oauth) | 0.1.0 | GIS OAuth client, token persistence, `authorizedFetch` |
-| [`@cyftec/google-drive-folder`](packages/google-drive-folder) | 0.1.0 | Drive folder path resolution and CRUD |
-| [`@cyftec/google-drive-as-socket`](packages/google-drive-as-socket) | 0.1.0 | PWA messaging over Drive `appDataFolder` — see [package README](packages/google-drive-as-socket/README.md) |
+| [`@cyfgoogle/oauth`](packages/oauth) | 0.1.0 | GIS OAuth client, token persistence, `authorizedFetch` |
+| [`@cyfgoogle/drive-folder`](packages/drive-folder) | 0.1.0 | Drive folder path resolution and CRUD |
+| [`@cyfgoogle/drive-as-socket`](packages/drive-as-socket) | 0.1.0 | PWA messaging over Drive `appDataFolder` — see [package README](packages/drive-as-socket/README.md) |
 
 Packages depend on each other via `workspace:*` and ship TypeScript source directly (no build step).
 
@@ -58,10 +58,10 @@ After a real publish, package versions are bumped in git and `workspace:*` deps 
 For the full messaging API:
 
 ```bash
-npm install @cyftec/google-drive-as-socket
+npm install @cyfgoogle/drive-as-socket
 ```
 
-Or install `@cyftec/google-oauth` and `@cyftec/google-drive-folder` independently for lower-level use.
+Or install `@cyfgoogle/oauth` and `@cyfgoogle/drive-folder` independently for lower-level use.
 
 ## License
 

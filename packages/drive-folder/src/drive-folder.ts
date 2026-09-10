@@ -1,7 +1,7 @@
 import { DriveAmbiguousPathError } from "./errors/drive-ambiguous-path-error.ts";
 import { DriveApiError } from "./errors/drive-api-error.ts";
 import { DriveScopeError } from "./errors/drive-scope-error.ts";
-import type { GoogleOAuth } from "@cyftec/google-oauth";
+import type { GoogleOAuth } from "@cyfgoogle/oauth";
 
 export type DriveSpace = "appDataFolder" | "drive";
 

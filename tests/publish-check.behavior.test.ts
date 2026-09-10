@@ -27,7 +27,7 @@ describe('runPublishCheck', () => {
 
   it('fails when package versions do not match the target', async () => {
     await expect(runPublishCheck(targetVersion)).rejects.toThrow(
-      `@cyftec/google-oauth version is 0.1.0, expected ${targetVersion}`,
+      `@cyfgoogle/oauth version is 0.1.0, expected ${targetVersion}`,
     );
   });
 
@@ -38,12 +38,12 @@ describe('runPublishCheck', () => {
 
   it('fails when a sibling version is stale after a partial bump', async () => {
     await bumpPackageVersions(targetVersion);
-    const oauth = await readPackageJson('packages/google-oauth');
+    const oauth = await readPackageJson('packages/oauth');
     oauth.version = '0.1.0';
-    await writePackageJson('packages/google-oauth', oauth);
+    await writePackageJson('packages/oauth', oauth);
 
     await expect(runPublishCheck(targetVersion)).rejects.toThrow(
-      `@cyftec/google-oauth version is 0.1.0, expected ${targetVersion}`,
+      `@cyfgoogle/oauth version is 0.1.0, expected ${targetVersion}`,
     );
   });
 

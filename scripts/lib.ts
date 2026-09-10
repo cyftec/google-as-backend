@@ -1,9 +1,9 @@
 export const ROOT = `${import.meta.dir}/..`;
 
 export const PACKAGES = [
-  { dir: 'packages/google-oauth', name: '@cyftec/google-oauth' },
-  { dir: 'packages/google-drive-folder', name: '@cyftec/google-drive-folder' },
-  { dir: 'packages/google-drive-as-socket', name: '@cyftec/google-drive-as-socket' },
+  { dir: 'packages/oauth', name: '@cyfgoogle/oauth' },
+  { dir: 'packages/drive-folder', name: '@cyfgoogle/drive-folder' },
+  { dir: 'packages/drive-as-socket', name: '@cyfgoogle/drive-as-socket' },
 ] as const;
 
 export const PACKAGE_DIRS = PACKAGES.map((pkg) => pkg.dir);
